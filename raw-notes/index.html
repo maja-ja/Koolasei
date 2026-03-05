@@ -2,287 +2,318 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>極簡筆記 - RAW NOTES</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>RAW NOTES</title>
+    
+    <!-- PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffffff">
+
     <style>
         :root {
             --border-width: 2px;
             --main-color: #000;
             --bg-color: #fff;
-            --hover-bg: #f5f5f5;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: "Courier New", Courier, "Noto Sans TC", monospace;
-            background-color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            color: var(--main-color);
-        }
-
-        /* 手機外框 */
-        .phone-frame {
-            width: 360px;
-            height: 720px;
-            background: var(--bg-color);
-            border: 3px solid var(--main-color);
-            border-radius: 20px;
-            position: relative;
+            background-color: #1a1a1a;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; color: var(--main-color);
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 15px 15px 0px rgba(0,0,0,1);
         }
 
-        /* 頂部 Header */
+        .app-container {
+            width: 100%; max-width: 500px; height: 100vh;
+            background: var(--bg-color); position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        /* Header */
         .header {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: var(--border-width) solid var(--main-color);
+            padding-top: var(--safe-top); padding-left: 20px; padding-right: 20px; padding-bottom: 15px;
+            border-bottom: var(--border-width) solid var(--main-color); background: white; z-index: 100;
         }
+        .header-top { display: flex; align-items: center; height: 50px; gap: 15px; }
+        .back-btn { width: 40px; height: 40px; border: var(--border-width) solid var(--main-color); display: none; justify-content: center; align-items: center; cursor: pointer; font-weight: 900; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; flex: 1; letter-spacing: -1px; }
 
-        .back-btn {
-            width: 36px;
-            height: 36px;
-            border: var(--border-width) solid var(--main-color);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-weight: 900;
-        }
-        .back-btn:active { transform: translate(2px, 2px); }
-
-        .header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-        }
+        /* 搜尋列 */
+        .search-bar { margin-top: 10px; display: none; border: var(--border-width) solid var(--main-color); padding: 8px; background: #f0f0f0; align-items: center; }
+        .search-bar input { border: none; background: transparent; width: 100%; outline: none; font-family: inherit; font-weight: bold; }
+        .clear-search { cursor: pointer; font-weight: 900; padding: 0 5px; }
 
         /* 內容區 */
         .page-container { flex: 1; position: relative; overflow: hidden; }
-
-        .page {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            padding: 15px;
-            display: none;
-            flex-direction: column;
-            background: var(--bg-color);
-            overflow-y: auto;
-        }
+        .page { position: absolute; width: 100%; height: 100%; padding: 15px; display: none; flex-direction: column; background: var(--bg-color); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .page.active { display: flex; }
 
-        /* 筆記網格佈局 */
-        .note-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
+        /* 網格美學 */
+        .note-grid { padding-bottom: 100px; }
+        .note-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .layout-a .stack { display: flex; flex-direction: column; gap: 12px; }
         .layout-a .big { grid-column: 2; }
         .layout-b .stack { grid-column: 2; display: flex; flex-direction: column; gap: 12px; }
         .layout-b .big { grid-column: 1; grid-row: 1; }
 
-        /* 筆記卡片樣式 */
-        .block {
-            border: var(--border-width) solid var(--main-color);
-            background: var(--bg-color);
-            padding: 12px;
-            cursor: pointer;
-            transition: 0.1s;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            text-align: left;
-            overflow: hidden;
-        }
-        .block:active { transform: translate(3px, 3px); }
-        
-        .note-title { font-weight: 900; font-size: 16px; margin-bottom: 5px; }
-        .note-date { font-size: 10px; opacity: 0.5; margin-bottom: 8px; }
-        .note-preview { font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        /* 卡片設計 */
+        .block { border: var(--border-width) solid var(--main-color); background: var(--bg-color); padding: 12px; cursor: pointer; display: flex; flex-direction: column; position: relative; }
+        .block:active { transform: translate(2px, 2px); }
+        .note-ts { font-size: 9px; font-weight: 900; margin-bottom: 4px; color: #666; }
+        .note-title { font-weight: 900; font-size: 15px; margin-bottom: 6px; text-transform: uppercase; line-height: 1.1; word-break: break-all; }
+        .note-preview { font-size: 11px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; margin-bottom: 8px; opacity: 0.6; }
+        .tag-pill { font-size: 8px; border: 1px dashed #000; padding: 1px 4px; width: fit-content; text-transform: uppercase; margin-top: auto; }
 
-        .block-sm { height: 100px; }
-        .block-lg { height: 212px; }
+        .block-sm { height: 125px; }
+        .block-lg { height: 262px; }
+        .empty-dash { border: var(--border-width) dashed #ddd; cursor: default; }
 
-        /* 編輯頁面樣式 */
-        .editor-title {
-            width: 100%;
-            border: none;
-            border-bottom: var(--border-width) solid var(--main-color);
-            font-size: 24px;
-            font-weight: 900;
-            padding: 10px 0;
-            margin-bottom: 15px;
-            outline: none;
-            font-family: inherit;
-        }
-        .editor-content {
-            width: 100%;
-            flex: 1;
-            border: none;
-            resize: none;
-            font-size: 16px;
-            line-height: 1.6;
-            outline: none;
-            font-family: inherit;
-            background: repeating-linear-gradient(transparent, transparent 27px, #eee 27px, #eee 28px);
-        }
+        /* 編輯器 */
+        .editor-status { font-size: 9px; font-weight: 900; color: #2ecc71; height: 15px; margin-bottom: 5px; }
+        .editor-title { width: 100%; border: none; border-bottom: 3px solid var(--main-color); font-size: 26px; font-weight: 900; padding: 10px 0; outline: none; font-family: inherit; }
+        .editor-tags { width: 100%; border: none; font-size: 12px; padding: 8px 0; outline: none; font-family: inherit; border-bottom: 1px dashed #ccc; color: #666; }
+        .editor-content { width: 100%; flex: 1; border: none; resize: none; font-size: 18px; line-height: 1.6; outline: none; font-family: inherit; padding-top: 15px; background: repeating-linear-gradient(transparent, transparent 28px, #f9f9f9 28px, #f9f9f9 29px); }
 
         /* 底部導航 */
-        .footer {
-            padding: 15px;
-            border-top: var(--border-width) solid var(--main-color);
-            display: grid;
-            grid-template-columns: 60px 1fr 60px;
-            gap: 12px;
-            background: var(--bg-color);
-        }
-        .btn-main { background: var(--main-color); color: var(--bg-color); font-weight: 900; }
+        .footer { padding-bottom: calc(var(--safe-bottom) + 10px); padding-left: 20px; padding-right: 20px; padding-top: 15px; border-top: var(--border-width) solid var(--main-color); display: grid; grid-template-columns: 60px 1fr 60px; gap: 12px; background: white; }
+        .btn-black { background: var(--main-color); color: var(--bg-color); font-weight: 900; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
+        .btn-ghost { font-size: 10px; border-style: dotted; display: flex; justify-content: center; align-items: center; text-align: center; cursor: pointer; font-weight: 900; }
 
-        /* 動畫 */
-        @keyframes pop {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .animate { animation: pop 0.2s ease-out forwards; }
+        /* 贊助彈窗 */
+        #support-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; padding:20px; }
+        .modal-content { background:white; width:100%; max-width:320px; padding:25px; text-align:center; border: 4px solid #000; box-shadow: 10px 10px 0px #000; }
+        
+        .empty-state { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.2; font-weight: 900; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-<div class="phone-frame">
+<div class="app-container">
     <div class="header">
-        <div id="back-btn" class="back-btn" onclick="saveAndExit()">←</div>
-        <h1 id="view-title">Raw Notes</h1>
+        <div class="header-top">
+            <div id="back-btn" class="back-btn" onclick="exitEditor()">←</div>
+            <h1 id="view-title">Raw Notes</h1>
+            <div id="search-btn" onclick="toggleSearch()" style="cursor:pointer; font-size: 20px;">🔍</div>
+        </div>
+        <div id="search-bar" class="search-bar">
+            <input type="text" id="search-input" placeholder="FILTER..." oninput="doSearch()">
+            <span class="clear-search" onclick="toggleSearch()">✕</span>
+        </div>
     </div>
 
     <div class="page-container">
-        <!-- 筆記列表頁 -->
+        <!-- 列表頁 -->
         <div id="page-home" class="page active">
-            <div id="note-grid"></div>
-            <div style="height: 40px;"></div>
+            <div id="note-grid" class="note-grid"></div>
+            <div id="empty-msg" class="empty-state">NO_DATA_FOUND</div>
         </div>
 
-        <!-- 筆記編輯頁 -->
+        <!-- 編輯頁 -->
         <div id="page-detail" class="page">
-            <input type="text" id="edit-title" class="editor-title" placeholder="TITLE...">
-            <textarea id="edit-content" class="editor-content" placeholder="Start writing..."></textarea>
+            <div class="editor-status" id="save-indicator"></div>
+            <div class="note-ts" id="edit-ts" style="margin-bottom:5px;"></div>
+            <input type="text" id="edit-title" class="editor-title" placeholder="UNTITLED" oninput="autoSave()">
+            <input type="text" id="edit-tags" class="editor-tags" placeholder="#TAGS" oninput="autoSave()">
+            <textarea id="edit-content" class="editor-content" placeholder="WRITE_HERE..." oninput="autoSave()"></textarea>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; padding-bottom: 30px;">
+                <div class="block btn-ghost" onclick="shareNote()">SHARE</div>
+                <div class="block btn-ghost" onclick="copyNote()">COPY</div>
+                <div class="block btn-ghost" style="color:red; border-color:red;" onclick="deleteNote()">DELETE</div>
+            </div>
         </div>
     </div>
 
-    <!-- 底部導航 -->
     <div class="footer" id="footer-nav">
-        <div class="block" style="padding:0; justify-content:center; align-items:center;" onclick="alert('SEARCH')">🔍</div>
-        <div class="block btn-main" style="padding:0; justify-content:center; align-items:center;" onclick="createNewNote()">＋ NEW NOTE</div>
-        <div class="block" style="padding:0; justify-content:center; align-items:center;" onclick="alert('LIST')">☰</div>
+        <div class="block btn-ghost" onclick="exportJSON()">JSON</div>
+        <div class="block btn-black" onclick="createNewNote()">＋ NEW NOTE</div>
+        <div class="block btn-ghost" style="background:#FFDD00; border-style:solid;" onclick="openSupport()">GIFT</div>
+    </div>
+</div>
+
+<!-- 贊助彈窗 -->
+<div id="support-modal">
+    <div class="modal-content">
+        <div style="font-weight:900; font-size:24px; margin-bottom:20px; letter-spacing:-1px;">SUPPORT RAW</div>
+        
+        <div style="text-align:left; margin-bottom:25px; padding: 15px; border: 2px solid #000;">
+            <div style="font-size:10px; font-weight:900; color:#666; margin-bottom: 5px;">BANK TRANSFER</div>
+            <div style="font-size:16px; font-weight:900;">元大銀行 (806)</div>
+            <div id="bank-acc" style="font-size:18px; font-family:monospace; font-weight:900; margin-top: 5px;">20102710511667</div>
+        </div>
+
+        <div class="block btn-black" onclick="copyBank()" style="padding:15px; margin-bottom:15px; font-size:16px;">COPY ACCOUNT</div>
+        <div class="block btn-ghost" onclick="closeSupport()" style="padding:10px; border-style:solid;">CLOSE</div>
     </div>
 </div>
 
 <script>
-    // 1. 筆記數據 (後端接入點)
-    let notes = [
-        { id: 1, title: "Shopping List", content: "Eggs, Milk, Bread, Coffee beans, and some chocolate.", date: "2023/10/27" },
-        { id: 2, title: "Project Idea", content: "A brutalist style note app with black and white theme.", date: "2023/10/26" },
-        { id: 3, title: "Meeting", content: "Discuss the new API endpoints with the backend team at 3 PM.", date: "2023/10/25" }
-    ];
+    const YUANTA_ACC = "20102710511667";
+    let notes = [];
+    let curId = null;
+    let saveTimeout = null;
 
-    let currentNoteId = null;
+    function init() {
+        const saved = localStorage.getItem('raw_notes_v1.2');
+        notes = saved ? JSON.parse(saved) : [];
+        render(notes);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+    }
 
-    // 2. 渲染列表 (保持 A/B 交替佈局)
-    function renderNotes() {
+    function render(data) {
         const grid = document.getElementById('note-grid');
+        const empty = document.getElementById('empty-msg');
         grid.innerHTML = '';
+        empty.style.display = data.length ? 'none' : 'flex';
 
-        for (let i = 0; i < notes.length; i += 3) {
-            const isLayoutB = Math.floor(i / 3) % 2 === 1;
+        for (let i = 0; i < data.length; i += 3) {
+            const isB = Math.floor(i / 3) % 2 === 1;
             const group = document.createElement('div');
-            group.className = `note-group ${isLayoutB ? 'layout-b' : 'layout-a'} animate`;
-
-            const n = [notes[i], notes[i+1], notes[i+2]];
-
-            let stackHTML = `<div class="stack">`;
-            if (n[0]) stackHTML += createNoteCard(n[0], 'block-sm');
-            if (n[1]) stackHTML += createNoteCard(n[1], 'block-sm');
-            stackHTML += `</div>`;
-
-            let bigHTML = n[2] 
-                ? createNoteCard(n[2], 'block-lg big')
-                : `<div class="block block-lg big" style="border-style:dashed; opacity:0.3"></div>`;
-
-            group.innerHTML = isLayoutB ? (bigHTML + stackHTML) : (stackHTML + bigHTML);
+            group.className = `note-group ${isB ? 'layout-b' : 'layout-a'}`;
+            
+            const n = [data[i], data[i+1], data[i+2]];
+            let stack = `<div class="stack">`;
+            stack += n[0] ? cardHtml(n[0], 'block-sm') : `<div class="block block-sm empty-dash"></div>`;
+            stack += n[1] ? cardHtml(n[1], 'block-sm') : `<div class="block block-sm empty-dash"></div>`;
+            stack += `</div>`;
+            
+            let big = n[2] ? cardHtml(n[2], 'block-lg big') : `<div class="block block-lg big empty-dash"></div>`;
+            group.innerHTML = isB ? (big + stack) : (stack + big);
             grid.appendChild(group);
         }
     }
 
-    function createNoteCard(note, className) {
-        return `
-            <div class="block ${className}" onclick="openNote(${note.id})">
-                <div class="note-date">${note.date}</div>
-                <div class="note-title">${note.title}</div>
-                <div class="note-preview">${note.content}</div>
-            </div>
-        `;
+    function cardHtml(n, cls) {
+        return `<div class="block ${cls}" onclick="openNote(${n.id})">
+            <div class="note-ts">${n.date} ${n.time}</div>
+            <div class="note-title">${n.title || 'UNTITLED'}</div>
+            <div class="note-preview">${n.content || ''}</div>
+            ${n.tags ? `<div class="tag-pill">${n.tags}</div>` : ''}
+        </div>`;
     }
 
-    // 3. 筆記操作邏輯
     function createNewNote() {
-        const newId = Date.now();
+        const now = new Date();
         const newNote = {
-            id: newId,
-            title: "",
-            content: "",
-            date: new Date().toLocaleDateString()
+            id: Date.now(),
+            title: "", content: "", tags: "",
+            date: now.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }).toUpperCase(),
+            time: now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0')
         };
-        notes.unshift(newNote); // 新筆記放在最前面
-        openNote(newId);
+        notes.unshift(newNote);
+        save();
+        openNote(newNote.id);
     }
 
     function openNote(id) {
-        currentNoteId = id;
-        const note = notes.find(n => n.id === id);
-        document.getElementById('edit-title').value = note.title;
-        document.getElementById('edit-content').value = note.content;
+        curId = id;
+        const n = notes.find(x => x.id === id);
+        document.getElementById('edit-title').value = n.title;
+        document.getElementById('edit-content').value = n.content;
+        document.getElementById('edit-tags').value = n.tags || "";
+        document.getElementById('edit-ts').innerText = `CREATED: ${n.date} ${n.time}`;
+        document.getElementById('save-indicator').innerText = "";
         navTo('page-detail');
     }
 
-    function saveAndExit() {
-        const note = notes.find(n => n.id === currentNoteId);
-        if (note) {
-            note.title = document.getElementById('edit-title').value || "Untitled";
-            note.content = document.getElementById('edit-content').value;
+    function autoSave() {
+        document.getElementById('save-indicator').innerText = "TYPING...";
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            const n = notes.find(x => x.id === curId);
+            if (n) {
+                n.title = document.getElementById('edit-title').value;
+                n.content = document.getElementById('edit-content').value;
+                n.tags = document.getElementById('edit-tags').value;
+                save();
+                document.getElementById('save-indicator').innerText = "SAVED ✓";
+            }
+        }, 800);
+    }
+
+    function save() { localStorage.setItem('raw_notes_v1.2', JSON.stringify(notes)); }
+
+    function exitEditor() {
+        const n = notes.find(x => x.id === curId);
+        if (n && !n.title.trim() && !n.content.trim()) {
+            notes = notes.filter(x => x.id !== curId);
         }
-        renderNotes();
-        navTo('page-home');
+        save(); render(notes); navTo('page-home');
     }
 
-    // 4. 導航系統
-    function navTo(pageId) {
-        const isHome = (pageId === 'page-home');
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        
-        document.getElementById('view-title').innerText = isHome ? 'Raw Notes' : 'Edit Note';
-        document.getElementById('back-btn').style.display = isHome ? 'none' : 'flex';
-        document.getElementById('footer-nav').style.display = isHome ? 'grid' : 'none';
+    async function shareNote() {
+        const t = document.getElementById('edit-title').value;
+        const c = document.getElementById('edit-content').value;
+        if (navigator.share) {
+            try { await navigator.share({ title: t, text: `${t}\n\n${c}` }); } catch(e) {}
+        } else { copyNote(); }
     }
 
-    // 初始化
-    renderNotes();
+    function copyNote() {
+        const t = document.getElementById('edit-title').value;
+        const c = document.getElementById('edit-content').value;
+        navigator.clipboard.writeText(`${t}\n${c}`);
+        alert('COPIED!');
+    }
+
+    function deleteNote() {
+        if (confirm('DELETE?')) {
+            notes = notes.filter(x => x.id !== curId);
+            save(); render(notes); navTo('page-home');
+        }
+    }
+
+    function exportJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "raw_notes_backup.json");
+        dl.click();
+    }
+
+    function openSupport() { document.getElementById('support-modal').style.display = 'flex'; }
+    function closeSupport() { document.getElementById('support-modal').style.display = 'none'; }
+    function copyBank() {
+        navigator.clipboard.writeText(YUANTA_ACC);
+        alert('元大帳號已複製！感謝贊助。');
+    }
+
+    function toggleSearch() {
+        const b = document.getElementById('search-bar');
+        const inp = document.getElementById('search-input');
+        if (b.style.display === 'flex') {
+            b.style.display = 'none'; inp.value = ''; render(notes);
+        } else {
+            b.style.display = 'flex'; inp.focus();
+        }
+    }
+
+    function doSearch() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        const res = notes.filter(x => x.title.toLowerCase().includes(q) || x.content.toLowerCase().includes(q) || x.tags.toLowerCase().includes(q));
+        render(res);
+    }
+
+    function navTo(p) {
+        const isH = p === 'page-home';
+        document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+        document.getElementById(p).classList.add('active');
+        document.getElementById('view-title').innerText = isH ? 'Raw Notes' : 'Edit';
+        document.getElementById('back-btn').style.display = isH ? 'none' : 'flex';
+        document.getElementById('footer-nav').style.display = isH ? 'grid' : 'none';
+        document.getElementById('search-btn').style.display = isH ? 'block' : 'none';
+    }
+
+    init();
 </script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+
 </body>
 </html>
