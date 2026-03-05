@@ -3,149 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>最終完整版 UI</title>
+    <title>極簡筆記 - RAW NOTES</title>
     <style>
         :root {
-            --border-color: #333;
-            --dot-color: #e0e0e0;
+            --border-width: 2px;
+            --main-color: #000;
+            --bg-color: #fff;
+            --hover-bg: #f5f5f5;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: -apple-system, sans-serif;
-            background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
-            background-size: 25px 25px;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0; padding: 20px;
+            font-family: "Courier New", Courier, "Noto Sans TC", monospace;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--main-color);
         }
 
+        /* 手機外框 */
         .phone-frame {
-            width: 360px; height: 680px; background: white;
-            border: 2px solid var(--border-color); border-radius: 15px;
-            position: relative; overflow: hidden; display: flex; flex-direction: column;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            width: 360px;
+            height: 720px;
+            background: var(--bg-color);
+            border: 3px solid var(--main-color);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 15px 15px 0px rgba(0,0,0,1);
         }
 
-        .page { display: none; flex-direction: column; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; gap: 15px; }
+        /* 頂部 Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: var(--border-width) solid var(--main-color);
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border: var(--border-width) solid var(--main-color);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 900;
+        }
+        .back-btn:active { transform: translate(2px, 2px); }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        /* 內容區 */
+        .page-container { flex: 1; position: relative; overflow: hidden; }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            display: none;
+            flex-direction: column;
+            background: var(--bg-color);
+            overflow-y: auto;
+        }
         .page.active { display: flex; }
 
-        .block {
-            border: 1.5px solid var(--border-color); border-radius: 15px;
-            display: flex; justify-content: center; align-items: center;
-            text-align: center; padding: 10px; font-size: 14px; font-weight: bold;
-            background: white; cursor: pointer; transition: 0.1s;
-        }
-        .block:active { background: #f0f0f0; }
-
-        /* --- 核心修改：大框框內部佈局 --- */
-        .clickable-group-box {
-            border: 1.5px solid var(--border-color);
-            border-radius: 20px;
-            padding: 10px;
+        /* 筆記網格佈局 */
+        .note-group {
             display: grid;
-            /* 左側堆疊區(1fr)，右側模塊三(70px) */
-            grid-template-columns: 1fr 70px;
-            gap: 10px;
-            box-sizing: border-box;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .layout-a .stack { display: flex; flex-direction: column; gap: 12px; }
+        .layout-a .big { grid-column: 2; }
+        .layout-b .stack { grid-column: 2; display: flex; flex-direction: column; gap: 12px; }
+        .layout-b .big { grid-column: 1; grid-row: 1; }
+
+        /* 筆記卡片樣式 */
+        .block {
+            border: var(--border-width) solid var(--main-color);
+            background: var(--bg-color);
+            padding: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            overflow: hidden;
+        }
+        .block:active { transform: translate(3px, 3px); }
+        
+        .note-title { font-weight: 900; font-size: 16px; margin-bottom: 5px; }
+        .note-date { font-size: 10px; opacity: 0.5; margin-bottom: 8px; }
+        .note-preview { font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .block-sm { height: 100px; }
+        .block-lg { height: 212px; }
+
+        /* 編輯頁面樣式 */
+        .editor-title {
+            width: 100%;
+            border: none;
+            border-bottom: var(--border-width) solid var(--main-color);
+            font-size: 24px;
+            font-weight: 900;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            outline: none;
+            font-family: inherit;
+        }
+        .editor-content {
+            width: 100%;
+            flex: 1;
+            border: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.6;
+            outline: none;
+            font-family: inherit;
+            background: repeating-linear-gradient(transparent, transparent 27px, #eee 27px, #eee 28px);
         }
 
-        .left-stack { display: flex; flex-direction: column; gap: 10px; }
-        .left-stack .block { height: 50px; } /* 固定左側高度 */
-
-        /* 模塊三：變矮、變窄、框內對齊 */
-        .module-three-short { 
-            height: 110px; /* 控制矮度 */
-            align-self: center; /* 在 Grid 中垂直居中 */
+        /* 底部導航 */
+        .footer {
+            padding: 15px;
+            border-top: var(--border-width) solid var(--main-color);
+            display: grid;
+            grid-template-columns: 60px 1fr 60px;
+            gap: 12px;
+            background: var(--bg-color);
         }
+        .btn-main { background: var(--main-color); color: var(--bg-color); font-weight: 900; }
 
-        /* 內容與導航 */
-        .content-main { flex: 2; font-size: 18px; }
-        .content-sub { flex: 1; }
-        .footer { margin-top: auto; display: grid; gap: 8px; height: 75px; }
-        .col-3 { grid-template-columns: 75px 1fr 75px; }
-        .col-4 { grid-template-columns: repeat(4, 1fr); }
+        /* 動畫 */
+        @keyframes pop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate { animation: pop 0.2s ease-out forwards; }
     </style>
 </head>
 <body>
 
 <div class="phone-frame">
+    <div class="header">
+        <div id="back-btn" class="back-btn" onclick="saveAndExit()">←</div>
+        <h1 id="view-title">Raw Notes</h1>
+    </div>
 
-    <!-- 頁面 1: 主頁面 -->
-    <div id="page-home" class="page active">
-        <div class="block" style="height: 60px;">標題</div>
-        
-        <!-- 大框框區塊 1 -->
-        <div class="clickable-group-box">
-            <div class="left-stack">
-                <div class="block" onclick="navTo('page-detail')">可點擊模塊一</div>
-                <div class="block" onclick="navTo('page-detail')">可點擊模塊二</div>
-            </div>
-            <div class="block module-three-short" onclick="navTo('page-detail')">模塊<br>三</div>
+    <div class="page-container">
+        <!-- 筆記列表頁 -->
+        <div id="page-home" class="page active">
+            <div id="note-grid"></div>
+            <div style="height: 40px;"></div>
         </div>
 
-        <!-- 大框框區塊 2 (配置一樣) -->
-        <div class="clickable-group-box">
-            <div class="left-stack">
-                <div class="block" onclick="navTo('page-detail')">可點擊模塊一</div>
-                <div class="block" onclick="navTo('page-detail')">可點擊模塊二</div>
-            </div>
-            <div class="block module-three-short" onclick="navTo('page-detail')">模塊<br>三</div>
-        </div>
-
-        <div class="footer col-3">
-            <div class="block" onclick="navTo('page-functions')">更多功能</div>
-            <div class="block">科目</div>
-            <div class="block" onclick="navTo('page-settings')">設定</div>
+        <!-- 筆記編輯頁 -->
+        <div id="page-detail" class="page">
+            <input type="text" id="edit-title" class="editor-title" placeholder="TITLE...">
+            <textarea id="edit-content" class="editor-content" placeholder="Start writing..."></textarea>
         </div>
     </div>
 
-    <!-- 頁面 2: 內容詳情 -->
-    <div id="page-detail" class="page">
-        <div class="block" style="height: 60px;">標題</div>
-        <div class="block content-main">內容模塊一</div>
-        <div class="block content-sub">內容模塊二</div>
-        <div class="footer col-3">
-            <div class="block" onclick="navTo('page-home')">上一頁</div>
-            <div class="block">科目</div>
-            <div class="block" onclick="navTo('page-home')">上一頁</div>
-        </div>
-    </div>
-
-    <!-- 頁面 3: 功能頁 -->
-    <div id="page-functions" class="page">
-        <div class="block" style="height:45px; border-radius: 20px 20px 5px 5px;">功能</div>
-        <div class="left-stack" style="gap:10px;">
-            <div class="block" style="height:50px;">功能模塊一</div>
-            <div class="block" style="height:50px;">功能模塊二</div>
-            <div class="block" style="height:50px;">功能模塊三</div>
-            <div class="block" style="height:50px;">功能模塊四</div>
-        </div>
-        <div class="footer col-4">
-            <div class="block">語言</div><div class="block">要</div><div class="block">不要</div>
-            <div class="block" onclick="navTo('page-home')">返回</div>
-        </div>
-    </div>
-
-    <!-- 頁面 4: 設定頁 -->
-    <div id="page-settings" class="page">
-        <div class="block" style="height:45px; border-radius: 20px 20px 5px 5px;">設定</div>
-        <div class="left-stack" style="gap:10px;">
-            <div class="block" style="height:50px;">設定模塊一</div>
-            <div class="block" style="height:50px;">設定模塊二</div>
-            <div class="block" style="height:50px;">設定模塊二</div>
-            <div class="block" style="height:50px;">設定模塊二</div>
-        </div>
-        <div class="footer col-4">
-            <div class="block">贊助</div><div class="block">開</div><div class="block">關</div>
-            <div class="block" onclick="navTo('page-home')">返回</div>
-        </div>
+    <!-- 底部導航 -->
+    <div class="footer" id="footer-nav">
+        <div class="block" style="padding:0; justify-content:center; align-items:center;" onclick="alert('SEARCH')">🔍</div>
+        <div class="block btn-main" style="padding:0; justify-content:center; align-items:center;" onclick="createNewNote()">＋ NEW NOTE</div>
+        <div class="block" style="padding:0; justify-content:center; align-items:center;" onclick="alert('LIST')">☰</div>
     </div>
 </div>
 
 <script>
+    // 1. 筆記數據 (後端接入點)
+    let notes = [
+        { id: 1, title: "Shopping List", content: "Eggs, Milk, Bread, Coffee beans, and some chocolate.", date: "2023/10/27" },
+        { id: 2, title: "Project Idea", content: "A brutalist style note app with black and white theme.", date: "2023/10/26" },
+        { id: 3, title: "Meeting", content: "Discuss the new API endpoints with the backend team at 3 PM.", date: "2023/10/25" }
+    ];
+
+    let currentNoteId = null;
+
+    // 2. 渲染列表 (保持 A/B 交替佈局)
+    function renderNotes() {
+        const grid = document.getElementById('note-grid');
+        grid.innerHTML = '';
+
+        for (let i = 0; i < notes.length; i += 3) {
+            const isLayoutB = Math.floor(i / 3) % 2 === 1;
+            const group = document.createElement('div');
+            group.className = `note-group ${isLayoutB ? 'layout-b' : 'layout-a'} animate`;
+
+            const n = [notes[i], notes[i+1], notes[i+2]];
+
+            let stackHTML = `<div class="stack">`;
+            if (n[0]) stackHTML += createNoteCard(n[0], 'block-sm');
+            if (n[1]) stackHTML += createNoteCard(n[1], 'block-sm');
+            stackHTML += `</div>`;
+
+            let bigHTML = n[2] 
+                ? createNoteCard(n[2], 'block-lg big')
+                : `<div class="block block-lg big" style="border-style:dashed; opacity:0.3"></div>`;
+
+            group.innerHTML = isLayoutB ? (bigHTML + stackHTML) : (stackHTML + bigHTML);
+            grid.appendChild(group);
+        }
+    }
+
+    function createNoteCard(note, className) {
+        return `
+            <div class="block ${className}" onclick="openNote(${note.id})">
+                <div class="note-date">${note.date}</div>
+                <div class="note-title">${note.title}</div>
+                <div class="note-preview">${note.content}</div>
+            </div>
+        `;
+    }
+
+    // 3. 筆記操作邏輯
+    function createNewNote() {
+        const newId = Date.now();
+        const newNote = {
+            id: newId,
+            title: "",
+            content: "",
+            date: new Date().toLocaleDateString()
+        };
+        notes.unshift(newNote); // 新筆記放在最前面
+        openNote(newId);
+    }
+
+    function openNote(id) {
+        currentNoteId = id;
+        const note = notes.find(n => n.id === id);
+        document.getElementById('edit-title').value = note.title;
+        document.getElementById('edit-content').value = note.content;
+        navTo('page-detail');
+    }
+
+    function saveAndExit() {
+        const note = notes.find(n => n.id === currentNoteId);
+        if (note) {
+            note.title = document.getElementById('edit-title').value || "Untitled";
+            note.content = document.getElementById('edit-content').value;
+        }
+        renderNotes();
+        navTo('page-home');
+    }
+
+    // 4. 導航系統
     function navTo(pageId) {
+        const isHome = (pageId === 'page-home');
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
+        
+        document.getElementById('view-title').innerText = isHome ? 'Raw Notes' : 'Edit Note';
+        document.getElementById('back-btn').style.display = isHome ? 'none' : 'flex';
+        document.getElementById('footer-nav').style.display = isHome ? 'grid' : 'none';
     }
+
+    // 初始化
+    renderNotes();
 </script>
 
 </body>
