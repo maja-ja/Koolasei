@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最終完整版 UI</title>
+    <style>
+        :root {
+            --border-color: #333;
+            --dot-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+            background-size: 25px 25px;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px;
+        }
+
+        .phone-frame {
+            width: 360px; height: 680px; background: white;
+            border: 2px solid var(--border-color); border-radius: 15px;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .page { display: none; flex-direction: column; width: 100%; height: 100%; padding: 15px; box-sizing: border-box; gap: 15px; }
+        .page.active { display: flex; }
+
+        .block {
+            border: 1.5px solid var(--border-color); border-radius: 15px;
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; padding: 10px; font-size: 14px; font-weight: bold;
+            background: white; cursor: pointer; transition: 0.1s;
+        }
+        .block:active { background: #f0f0f0; }
+
+        /* --- 核心修改：大框框內部佈局 --- */
+        .clickable-group-box {
+            border: 1.5px solid var(--border-color);
+            border-radius: 20px;
+            padding: 10px;
+            display: grid;
+            /* 左側堆疊區(1fr)，右側模塊三(70px) */
+            grid-template-columns: 1fr 70px;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .left-stack { display: flex; flex-direction: column; gap: 10px; }
+        .left-stack .block { height: 50px; } /* 固定左側高度 */
+
+        /* 模塊三：變矮、變窄、框內對齊 */
+        .module-three-short { 
+            height: 110px; /* 控制矮度 */
+            align-self: center; /* 在 Grid 中垂直居中 */
+        }
+
+        /* 內容與導航 */
+        .content-main { flex: 2; font-size: 18px; }
+        .content-sub { flex: 1; }
+        .footer { margin-top: auto; display: grid; gap: 8px; height: 75px; }
+        .col-3 { grid-template-columns: 75px 1fr 75px; }
+        .col-4 { grid-template-columns: repeat(4, 1fr); }
+    </style>
+</head>
+<body>
+
+<div class="phone-frame">
+
+    <!-- 頁面 1: 主頁面 -->
+    <div id="page-home" class="page active">
+        <div class="block" style="height: 60px;">標題</div>
+        
+        <!-- 大框框區塊 1 -->
+        <div class="clickable-group-box">
+            <div class="left-stack">
+                <div class="block" onclick="navTo('page-detail')">可點擊模塊一</div>
+                <div class="block" onclick="navTo('page-detail')">可點擊模塊二</div>
+            </div>
+            <div class="block module-three-short" onclick="navTo('page-detail')">模塊<br>三</div>
+        </div>
+
+        <!-- 大框框區塊 2 (配置一樣) -->
+        <div class="clickable-group-box">
+            <div class="left-stack">
+                <div class="block" onclick="navTo('page-detail')">可點擊模塊一</div>
+                <div class="block" onclick="navTo('page-detail')">可點擊模塊二</div>
+            </div>
+            <div class="block module-three-short" onclick="navTo('page-detail')">模塊<br>三</div>
+        </div>
+
+        <div class="footer col-3">
+            <div class="block" onclick="navTo('page-functions')">更多功能</div>
+            <div class="block">科目</div>
+            <div class="block" onclick="navTo('page-settings')">設定</div>
+        </div>
+    </div>
+
+    <!-- 頁面 2: 內容詳情 -->
+    <div id="page-detail" class="page">
+        <div class="block" style="height: 60px;">標題</div>
+        <div class="block content-main">內容模塊一</div>
+        <div class="block content-sub">內容模塊二</div>
+        <div class="footer col-3">
+            <div class="block" onclick="navTo('page-home')">上一頁</div>
+            <div class="block">科目</div>
+            <div class="block" onclick="navTo('page-home')">上一頁</div>
+        </div>
+    </div>
+
+    <!-- 頁面 3: 功能頁 -->
+    <div id="page-functions" class="page">
+        <div class="block" style="height:45px; border-radius: 20px 20px 5px 5px;">功能</div>
+        <div class="left-stack" style="gap:10px;">
+            <div class="block" style="height:50px;">功能模塊一</div>
+            <div class="block" style="height:50px;">功能模塊二</div>
+            <div class="block" style="height:50px;">功能模塊三</div>
+            <div class="block" style="height:50px;">功能模塊四</div>
+        </div>
+        <div class="footer col-4">
+            <div class="block">語言</div><div class="block">要</div><div class="block">不要</div>
+            <div class="block" onclick="navTo('page-home')">返回</div>
+        </div>
+    </div>
+
+    <!-- 頁面 4: 設定頁 -->
+    <div id="page-settings" class="page">
+        <div class="block" style="height:45px; border-radius: 20px 20px 5px 5px;">設定</div>
+        <div class="left-stack" style="gap:10px;">
+            <div class="block" style="height:50px;">設定模塊一</div>
+            <div class="block" style="height:50px;">設定模塊二</div>
+            <div class="block" style="height:50px;">設定模塊二</div>
+            <div class="block" style="height:50px;">設定模塊二</div>
+        </div>
+        <div class="footer col-4">
+            <div class="block">贊助</div><div class="block">開</div><div class="block">關</div>
+            <div class="block" onclick="navTo('page-home')">返回</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function navTo(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+</script>
+
+</body>
+</html>
