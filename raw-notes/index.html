@@ -281,6 +281,8 @@
     // 初始化
     renderNotes();
 </script>
-
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
 </body>
 </html>
